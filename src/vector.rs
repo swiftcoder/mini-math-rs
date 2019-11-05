@@ -17,7 +17,7 @@ impl Vector {
     pub fn cross(&self, rhs: &Self) -> Self {
         Self {
             x: self.y * rhs.z - self.z * rhs.y,
-            y: self.x * rhs.z - self.z * rhs.x,
+            y: self.z * rhs.x - self.x * rhs.z,
             z: self.x * rhs.y - self.y * rhs.x,
         }
     }
@@ -52,6 +52,6 @@ mod tests {
         let b = Vector::new(2.0, 6.0, 5.0);
 
         assert_nearly_eq!(a.dot(&b), -4.0);
-        assert_eq!(a.cross(&b), Vector::new(-49.0, 7.0, 28.0));
+        assert_eq!(a.cross(&b), Vector::new(-49.0, -7.0, 28.0));
     }
 }

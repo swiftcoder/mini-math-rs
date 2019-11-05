@@ -1,5 +1,17 @@
 use crate::{Matrix, Point, Vector};
 
+impl std::ops::Neg for Vector {
+    type Output = Self;
+
+    fn neg(self) -> Self {
+        Self {
+            x: -self.x,
+            y: -self.y,
+            z: -self.z,
+        }
+    }
+}
+
 impl std::ops::Mul for Matrix {
     type Output = Self;
 
@@ -9,7 +21,7 @@ impl std::ops::Mul for Matrix {
         for i in 0..4 {
             for j in 0..4 {
                 for k in 0..4 {
-                    result.0[i][j] += self.0[i][k] * rhs.0[k][j];
+                    result.0[i][j] += rhs.0[i][k] * self.0[k][j];
                 }
             }
         }
