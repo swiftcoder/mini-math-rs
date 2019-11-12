@@ -1,4 +1,8 @@
-#[derive(Copy, Clone, Debug, PartialEq)]
+use crate::Point;
+
+/// A vector in 3D space.
+#[derive(Copy, Clone, Debug, PartialEq, zerocopy::AsBytes, zerocopy::FromBytes)]
+#[repr(C)]
 pub struct Vector {
     pub x: f32,
     pub y: f32,
@@ -6,15 +10,18 @@ pub struct Vector {
 }
 
 impl Vector {
+    /// Create a vector from x, y, z coordinates
     pub fn new(x: f32, y: f32, z: f32) -> Self {
         Self { x, y, z }
     }
 
-    pub fn dot(&self, rhs: &Self) -> f32 {
+    /// Compute the dot product between this vector and another
+    pub fn dot(&self, rhs: Self) -> f32 {
         self.x * rhs.x + self.y * rhs.y + self.z * rhs.z
     }
 
-    pub fn cross(&self, rhs: &Self) -> Self {
+    /// Compute the cross product between this vector and another.
+    pub fn cross(&self, rhs: Self) -> Self {
         Self {
             x: self.y * rhs.z - self.z * rhs.y,
             y: self.z * rhs.x - self.x * rhs.z,
@@ -22,17 +29,36 @@ impl Vector {
         }
     }
 
+    /// The length of this vector squared. Note that this avoids an expensive square root.
     pub fn magnitude_squared(&self) -> f32 {
-        self.dot(self)
+        self.dot(*self)
     }
 
+    /// The length of this vector. Note that this involves an expensive square root.
     pub fn magnitude(&self) -> f32 {
         self.magnitude_squared().sqrt()
     }
 
+    /// Normalize this vector to unit length. Note that this involves an expensive square root.
     pub fn normalized(&self) -> Self {
-        let d = 1.0 / self.magnitude();
-        *self * d
+        let d = self.magnitude();
+        if d > 0.0 {
+            let d = 1.0 / d;
+            *self * d
+        } else {
+            *self
+        }
+    }
+}
+
+impl From<Point> for Vector {
+    /// Convert a point into a vector
+    fn from(p: Point) -> Self {
+        Vector {
+            x: p.x,
+            y: p.y,
+            z: p.z,
+        }
     }
 }
 

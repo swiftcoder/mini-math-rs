@@ -1,3 +1,5 @@
+//! Lightweight math routines for 3D graphics.
+
 mod matrix;
 mod operators;
 mod point;

@@ -1,9 +1,12 @@
 use crate::{Point, Vector};
 
-#[derive(Copy, Clone, Debug, PartialEq)]
+/// A 4x4 matrix, suitable for 3D transformations.
+#[derive(Copy, Clone, Debug, PartialEq, zerocopy::AsBytes, zerocopy::FromBytes)]
+#[repr(C)]
 pub struct Matrix(pub [[f32; 4]; 4]);
 
 impl Matrix {
+    /// The identity matrix.
     pub fn identity() -> Self {
         Self([
             [1.0, 0.0, 0.0, 0.0],
@@ -13,6 +16,7 @@ impl Matrix {
         ])
     }
 
+    /// A matrix composed entirely of zeroes.
     pub fn zero() -> Self {
         Self([
             [0.0, 0.0, 0.0, 0.0],
@@ -22,28 +26,30 @@ impl Matrix {
         ])
     }
 
+    /// A look-at matrix suitable for positioning a camera.
     pub fn look_at(eye: Point, target: Point, up: Vector) -> Self {
         let z_axis = (target - eye).normalized();
-        let x_axis = z_axis.cross(&up).normalized();
-        let y_axis = x_axis.cross(&z_axis);
+        let x_axis = z_axis.cross(up).normalized();
+        let y_axis = x_axis.cross(z_axis);
 
-        let eye_vec = eye - Point::new(0.0, 0.0, 0.0);
+        let eye_vec = eye.into();
 
         Self([
             [x_axis.x, y_axis.x, -z_axis.x, 0.0],
             [x_axis.y, y_axis.y, -z_axis.y, 0.0],
             [x_axis.z, y_axis.z, -z_axis.z, 0.0],
             [
-                -x_axis.dot(&eye_vec),
-                -y_axis.dot(&eye_vec),
-                z_axis.dot(&eye_vec),
+                -x_axis.dot(eye_vec),
+                -y_axis.dot(eye_vec),
+                z_axis.dot(eye_vec),
                 1.0,
             ],
         ])
     }
 
-    pub fn perspective(aspect_ratio: f32, fov: f32, znear: f32, zfar: f32) -> Self {
-        let f = 1.0 / (fov / 2.0).tan();
+    /// A perspective matrix suitable for use as a camera projection.
+    pub fn perspective(aspect_ratio: f32, fov_radians: f32, znear: f32, zfar: f32) -> Self {
+        let f = 1.0 / (fov_radians / 2.0).tan();
 
         Self([
             [f / aspect_ratio, 0.0, 0.0, 0.0],
@@ -53,6 +59,7 @@ impl Matrix {
         ])
     }
 
+    /// A matrix that translates by the given vector.
     pub fn translation(v: Vector) -> Self {
         Self([
             [1.0, 0.0, 0.0, 0.0],
@@ -62,33 +69,47 @@ impl Matrix {
         ])
     }
 
-    pub fn rotation_x(angle: f32) -> Self {
+    /// A matrix that rotates around the x-axis.
+    pub fn rotation_x(angle_radians: f32) -> Self {
         Self([
             [1.0, 0.0, 0.0, 0.0],
-            [0.0, angle.cos(), -angle.sin(), 0.0],
-            [0.0, angle.sin(), angle.cos(), 0.0],
+            [0.0, angle_radians.cos(), -angle_radians.sin(), 0.0],
+            [0.0, angle_radians.sin(), angle_radians.cos(), 0.0],
             [0.0, 0.0, 0.0, 1.0],
         ])
     }
 
-    pub fn rotation_y(angle: f32) -> Self {
+    /// A matrix that rotates around the y-axis.
+    pub fn rotation_y(angle_radians: f32) -> Self {
         Self([
-            [angle.cos(), 0.0, angle.sin(), 0.0],
+            [angle_radians.cos(), 0.0, angle_radians.sin(), 0.0],
             [0.0, 1.0, 0.0, 0.0],
-            [-angle.sin(), 0.0, angle.cos(), 0.0],
+            [-angle_radians.sin(), 0.0, angle_radians.cos(), 0.0],
             [0.0, 0.0, 0.0, 1.0],
         ])
     }
 
-    pub fn rotation_z(angle: f32) -> Self {
+    /// A matrix that rotates around the z-axis.
+    pub fn rotation_z(angle_radians: f32) -> Self {
         Self([
-            [angle.cos(), -angle.sin(), 0.0, 0.0],
-            [angle.sin(), angle.cos(), 0.0, 0.0],
+            [angle_radians.cos(), -angle_radians.sin(), 0.0, 0.0],
+            [angle_radians.sin(), angle_radians.cos(), 0.0, 0.0],
             [0.0, 0.0, 1.0, 0.0],
             [0.0, 0.0, 0.0, 1.0],
         ])
     }
 
+    /// A matrix that scales uniformly in all dimensions.
+    pub fn uniform_scale(scale: f32) -> Self {
+        Self([
+            [scale, 0.0, 0.0, 0.0],
+            [0.0, scale, 0.0, 0.0],
+            [0.0, 0.0, scale, 0.0],
+            [0.0, 0.0, 0.0, 1.0],
+        ])
+    }
+
+    /// The transpose of this matrix (i.e. this matrix flipped along the diagonal)
     pub fn transpose(&self) -> Self {
         let mut r = Self::zero();
 
@@ -101,6 +122,7 @@ impl Matrix {
         r
     }
 
+    /// The inverse of this matrix.
     pub fn invert(&self) -> Self {
         let mut inv = Matrix::zero();
 
