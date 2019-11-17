@@ -15,6 +15,24 @@ impl Vector {
         Self { x, y, z }
     }
 
+    /// The additive identity
+    pub fn zero() -> Self {
+        Self {
+            x: 0.0,
+            y: 0.0,
+            z: 0.0,
+        }
+    }
+
+    /// The multiplicative identity
+    pub fn one() -> Self {
+        Self {
+            x: 1.0,
+            y: 1.0,
+            z: 1.0,
+        }
+    }
+
     /// Compute the dot product between this vector and another
     pub fn dot(&self, rhs: Self) -> f32 {
         self.x * rhs.x + self.y * rhs.y + self.z * rhs.z
@@ -77,7 +95,7 @@ mod tests {
         let a = Vector::new(3.0, -5.0, 4.0);
         let b = Vector::new(2.0, 6.0, 5.0);
 
-        assert_nearly_eq!(a.dot(&b), -4.0);
-        assert_eq!(a.cross(&b), Vector::new(-49.0, -7.0, 28.0));
+        assert_nearly_eq!(a.dot(b), -4.0);
+        assert_eq!(a.cross(b), Vector::new(-49.0, -7.0, 28.0));
     }
 }

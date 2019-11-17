@@ -12,6 +12,14 @@ impl std::ops::Neg for Vector {
     }
 }
 
+impl std::ops::Mul<&Matrix> for Matrix {
+    type Output = Self;
+
+    fn mul(self, rhs: &Matrix) -> Self {
+        self * *rhs
+    }
+}
+
 impl std::ops::Mul for Matrix {
     type Output = Self;
 
@@ -66,6 +74,18 @@ macro_rules! scalar_op {
     };
 }
 
+macro_rules! scalar_assign_op {
+    ($trait: ident, $op_fn: ident, $type: ty, $other_type: ty, $op: tt) => {
+        impl std::ops::$trait<($other_type)> for $type {
+            fn $op_fn(&mut self, rhs: $other_type) {
+                self.x $op rhs;
+                self.y $op rhs;
+                self.z $op rhs;
+            }
+        }
+    };
+}
+
 macro_rules! vector_op {
     ($trait: ident, $op_fn: ident, $type: ty, $other_type: ty, $result_type: ty, $op: tt) => {
         impl std::ops::$trait<($other_type)> for $type {
@@ -78,17 +98,43 @@ macro_rules! vector_op {
     };
 }
 
+macro_rules! vector_assign_op {
+    ($trait: ident, $op_fn: ident, $type: ty, $other_type: ty, $op: tt) => {
+        impl std::ops::$trait<($other_type)> for $type {
+            fn $op_fn(&mut self, rhs: $other_type) {
+                self.x $op rhs.x;
+                self.y $op rhs.y;
+                self.z $op rhs.z;
+            }
+        }
+    };
+}
+
 scalar_op!(Add, add, Point, f32, Point, +);
 scalar_op!(Sub, sub, Point, f32, Point, -);
 scalar_op!(Mul, mul, Point, f32, Point, *);
+scalar_op!(Div, div, Point, f32, Point, /);
+scalar_assign_op!(AddAssign, add_assign, Point, f32, +=);
+scalar_assign_op!(SubAssign, sub_assign, Point, f32, -=);
+scalar_assign_op!(MulAssign, mul_assign, Point, f32, *=);
+scalar_assign_op!(DivAssign, div_assign, Point, f32, /=);
 
 scalar_op!(Add, add, Vector, f32, Vector, +);
 scalar_op!(Sub, sub, Vector, f32, Vector, -);
 scalar_op!(Mul, mul, Vector, f32, Vector, *);
+scalar_op!(Div, div, Vector, f32, Vector, /);
+scalar_assign_op!(AddAssign, add_assign, Vector, f32, +=);
+scalar_assign_op!(SubAssign, sub_assign, Vector, f32, -=);
+scalar_assign_op!(MulAssign, mul_assign, Vector, f32, *=);
+scalar_assign_op!(DivAssign, div_assign, Vector, f32, /=);
 
 vector_op!(Add, add, Vector, Vector, Vector, +);
 vector_op!(Sub, sub, Vector, Vector, Vector, -);
+vector_assign_op!(AddAssign, add_assign, Vector, Vector, +=);
+vector_assign_op!(SubAssign, sub_assign, Vector, Vector, -=);
 
 vector_op!(Add, add, Point, Vector, Point, +);
 vector_op!(Sub, sub, Point, Vector, Point, -);
 vector_op!(Sub, sub, Point, Point, Vector, -);
+vector_assign_op!(AddAssign, add_assign, Point, Vector, +=);
+vector_assign_op!(SubAssign, sub_assign, Point, Vector, -=);

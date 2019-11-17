@@ -279,4 +279,16 @@ mod tests {
 
         assert_eq!(m.invert() * m, Matrix::identity());
     }
+
+    #[test]
+    fn translate() {
+        let m = Matrix::translation(Vector::new(10.0, 1.0, 0.0));
+        assert_eq!(m * Point::zero(), Point::new(10.0, 1.0, 0.0));
+
+        let n = Matrix::translation(Vector::new(-2.0, -5.0, 0.0));
+        assert_eq!(n * Point::zero(), Point::new(-2.0, -5.0, 0.0));
+
+        let t = m * n;
+        assert_eq!(t * Point::zero(), Point::new(8.0, -4.0, 0.0));
+    }
 }
