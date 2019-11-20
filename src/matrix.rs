@@ -1,4 +1,4 @@
-use crate::{Point, Vector};
+use crate::{NearlyEqual, Point, Vector};
 
 /// A 4x4 matrix, suitable for 3D transformations.
 #[derive(Copy, Clone, Debug, PartialEq, zerocopy::AsBytes, zerocopy::FromBytes)]
@@ -251,6 +251,20 @@ impl Matrix {
         }
 
         inv
+    }
+}
+
+impl NearlyEqual for &Matrix {
+    fn nearly_equals(self, rhs: Self) -> bool {
+        for i in 0..4 {
+            for j in 0..4 {
+                if !self.0[i][j].nearly_equals(rhs.0[i][j]) {
+                    return false;
+                }
+            }
+        }
+
+        true
     }
 }
 

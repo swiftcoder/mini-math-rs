@@ -1,4 +1,4 @@
-use crate::Vector;
+use crate::{NearlyEqual, Vector};
 
 /// A point in 3D space.
 #[derive(Copy, Clone, Debug, PartialEq, zerocopy::AsBytes, zerocopy::FromBytes)]
@@ -42,5 +42,11 @@ impl From<Vector> for Point {
             y: v.y,
             z: v.z,
         }
+    }
+}
+
+impl NearlyEqual for &Point {
+    fn nearly_equals(self, rhs: Self) -> bool {
+        self.x.nearly_equals(rhs.x) && self.y.nearly_equals(rhs.y) && self.z.nearly_equals(rhs.z)
     }
 }

@@ -1,4 +1,4 @@
-use crate::Point;
+use crate::{NearlyEqual, Point};
 
 /// A vector in 3D space.
 #[derive(Copy, Clone, Debug, PartialEq, zerocopy::AsBytes, zerocopy::FromBytes)]
@@ -80,22 +80,22 @@ impl From<Point> for Vector {
     }
 }
 
+impl NearlyEqual for &Vector {
+    fn nearly_equals(self, rhs: Self) -> bool {
+        self.x.nearly_equals(rhs.x) && self.y.nearly_equals(rhs.y) && self.z.nearly_equals(rhs.z)
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use crate::*;
-
-    macro_rules! assert_nearly_eq {
-        ($a:expr, $b:expr) => {
-            assert!(f32::abs($a - $b) <= std::f32::EPSILON);
-        };
-    }
 
     #[test]
     fn products() {
         let a = Vector::new(3.0, -5.0, 4.0);
         let b = Vector::new(2.0, 6.0, 5.0);
 
-        assert_nearly_eq!(a.dot(b), -4.0);
+        assert!(a.dot(b).nearly_equals(-4.0));
         assert_eq!(a.cross(b), Vector::new(-49.0, -7.0, 28.0));
     }
 }
