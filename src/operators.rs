@@ -1,26 +1,14 @@
-use crate::{Matrix, Point, Vector};
+use crate::{Matrix4, Point, Vector3, Vector4};
 
-impl std::ops::Neg for Vector {
+impl std::ops::Mul<&Matrix4> for Matrix4 {
     type Output = Self;
 
-    fn neg(self) -> Self {
-        Self {
-            x: -self.x,
-            y: -self.y,
-            z: -self.z,
-        }
-    }
-}
-
-impl std::ops::Mul<&Matrix> for Matrix {
-    type Output = Self;
-
-    fn mul(self, rhs: &Matrix) -> Self {
+    fn mul(self, rhs: &Matrix4) -> Self {
         self * *rhs
     }
 }
 
-impl std::ops::Mul for Matrix {
+impl std::ops::Mul for Matrix4 {
     type Output = Self;
 
     fn mul(self, rhs: Self) -> Self {
@@ -28,9 +16,10 @@ impl std::ops::Mul for Matrix {
 
         for i in 0..4 {
             for j in 0..4 {
-                for k in 0..4 {
-                    result.0[i][j] += rhs.0[i][k] * self.0[k][j];
-                }
+                result.0[i][j] = rhs.0[i][0] * self.0[0][j]
+                    + rhs.0[i][1] * self.0[1][j]
+                    + rhs.0[i][2] * self.0[2][j]
+                    + rhs.0[i][3] * self.0[3][j];
             }
         }
 
@@ -38,7 +27,7 @@ impl std::ops::Mul for Matrix {
     }
 }
 
-impl std::ops::Mul<Point> for Matrix {
+impl std::ops::Mul<Point> for Matrix4 {
     type Output = Point;
 
     fn mul(self, rhs: Point) -> Point {
@@ -50,11 +39,11 @@ impl std::ops::Mul<Point> for Matrix {
     }
 }
 
-impl std::ops::Mul<Vector> for Matrix {
-    type Output = Vector;
+impl std::ops::Mul<Vector3> for Matrix4 {
+    type Output = Vector3;
 
-    fn mul(self, rhs: Vector) -> Vector {
-        Vector::new(
+    fn mul(self, rhs: Vector3) -> Vector3 {
+        Vector3::new(
             self.0[0][0] * rhs.x + self.0[1][0] * rhs.y + self.0[2][0] * rhs.z,
             self.0[0][1] * rhs.x + self.0[1][1] * rhs.y + self.0[2][1] * rhs.z,
             self.0[0][2] * rhs.x + self.0[1][2] * rhs.y + self.0[2][2] * rhs.z,
@@ -62,79 +51,89 @@ impl std::ops::Mul<Vector> for Matrix {
     }
 }
 
-macro_rules! scalar_op {
-    ($trait: ident, $op_fn: ident, $type: ty, $other_type: ty, $result_type: ty, $op: tt) => {
-        impl std::ops::$trait<($other_type)> for $type {
-            type Output = $result_type;
+impl std::ops::Mul<Vector4> for Matrix4 {
+    type Output = Vector4;
 
-            fn $op_fn(self, rhs: $other_type) -> $result_type {
-                <$result_type>::new(self.x $op rhs, self.y $op rhs, self.z $op rhs)
-            }
-        }
-    };
+    fn mul(self, rhs: Vector4) -> Vector4 {
+        Vector4::new(
+            self.row(0).dot(rhs),
+            self.row(1).dot(rhs),
+            self.row(2).dot(rhs),
+            self.row(3).dot(rhs),
+        )
+    }
 }
 
-macro_rules! scalar_assign_op {
-    ($trait: ident, $op_fn: ident, $type: ty, $other_type: ty, $op: tt) => {
-        impl std::ops::$trait<($other_type)> for $type {
-            fn $op_fn(&mut self, rhs: $other_type) {
-                self.x $op rhs;
-                self.y $op rhs;
-                self.z $op rhs;
-            }
-        }
-    };
+impl std::ops::Mul<Matrix4> for Point {
+    type Output = Point;
+
+    fn mul(self, rhs: Matrix4) -> Point {
+        Point::new(
+            Vector3::from_scalar(self.x).dot(Vector3::from(rhs.column(0))),
+            Vector3::from_scalar(self.y).dot(Vector3::from(rhs.column(1))),
+            Vector3::from_scalar(self.z).dot(Vector3::from(rhs.column(2))),
+        )
+    }
+}
+
+impl std::ops::Mul<Matrix4> for Vector3 {
+    type Output = Vector3;
+
+    fn mul(self, rhs: Matrix4) -> Vector3 {
+        Vector3::new(
+            Vector3::from_scalar(self.x).dot(Vector3::from(rhs.column(0))),
+            Vector3::from_scalar(self.y).dot(Vector3::from(rhs.column(1))),
+            Vector3::from_scalar(self.z).dot(Vector3::from(rhs.column(2))),
+        )
+    }
+}
+
+impl std::ops::Mul<Matrix4> for Vector4 {
+    type Output = Vector4;
+
+    fn mul(self, rhs: Matrix4) -> Vector4 {
+        Vector4::new(
+            Vector4::from_scalar(self.x).dot(rhs.column(0)),
+            Vector4::from_scalar(self.y).dot(rhs.column(1)),
+            Vector4::from_scalar(self.z).dot(rhs.column(2)),
+            Vector4::from_scalar(self.w).dot(rhs.column(3)),
+        )
+    }
 }
 
 macro_rules! vector_op {
-    ($trait: ident, $op_fn: ident, $type: ty, $other_type: ty, $result_type: ty, $op: tt) => {
-        impl std::ops::$trait<($other_type)> for $type {
+    (impl $trait:ident<$other_type: ty> for $type:ty {
+        fn $op_fn:ident -> $result_type:ty, $op:tt { $($field:ident),+ }
+    }) => {
+        impl std::ops::$trait<$other_type> for $type {
             type Output = $result_type;
 
             fn $op_fn(self, rhs: $other_type) -> $result_type {
-                <$result_type>::new(self.x $op rhs.x, self.y $op rhs.y, self.z $op rhs.z)
+                <$result_type>::new($(self.$field $op rhs.$field),+)
             }
         }
     };
 }
 
 macro_rules! vector_assign_op {
-    ($trait: ident, $op_fn: ident, $type: ty, $other_type: ty, $op: tt) => {
-        impl std::ops::$trait<($other_type)> for $type {
+    (impl $trait:ident<$other_type: ty> for $type:ty {
+        fn $op_fn:ident, $op:tt { $($field:ident),+ }
+    }) => {
+        impl std::ops::$trait<$other_type> for $type {
             fn $op_fn(&mut self, rhs: $other_type) {
-                self.x $op rhs.x;
-                self.y $op rhs.y;
-                self.z $op rhs.z;
+                $(self.$field $op rhs.$field);+
             }
         }
     };
 }
 
-scalar_op!(Add, add, Point, f32, Point, +);
-scalar_op!(Sub, sub, Point, f32, Point, -);
-scalar_op!(Mul, mul, Point, f32, Point, *);
-scalar_op!(Div, div, Point, f32, Point, /);
-scalar_assign_op!(AddAssign, add_assign, Point, f32, +=);
-scalar_assign_op!(SubAssign, sub_assign, Point, f32, -=);
-scalar_assign_op!(MulAssign, mul_assign, Point, f32, *=);
-scalar_assign_op!(DivAssign, div_assign, Point, f32, /=);
+vector_op!(impl Add<Vector3> for Vector3 { fn add -> Vector3, + {x, y, z} });
+vector_op!(impl Sub<Vector3> for Vector3 { fn sub -> Vector3, - {x, y, z} });
+vector_assign_op!(impl AddAssign<Vector3> for Vector3 { fn add_assign, += {x, y, z} });
+vector_assign_op!(impl SubAssign<Vector3> for Vector3 { fn sub_assign, -= {x, y, z} });
 
-scalar_op!(Add, add, Vector, f32, Vector, +);
-scalar_op!(Sub, sub, Vector, f32, Vector, -);
-scalar_op!(Mul, mul, Vector, f32, Vector, *);
-scalar_op!(Div, div, Vector, f32, Vector, /);
-scalar_assign_op!(AddAssign, add_assign, Vector, f32, +=);
-scalar_assign_op!(SubAssign, sub_assign, Vector, f32, -=);
-scalar_assign_op!(MulAssign, mul_assign, Vector, f32, *=);
-scalar_assign_op!(DivAssign, div_assign, Vector, f32, /=);
-
-vector_op!(Add, add, Vector, Vector, Vector, +);
-vector_op!(Sub, sub, Vector, Vector, Vector, -);
-vector_assign_op!(AddAssign, add_assign, Vector, Vector, +=);
-vector_assign_op!(SubAssign, sub_assign, Vector, Vector, -=);
-
-vector_op!(Add, add, Point, Vector, Point, +);
-vector_op!(Sub, sub, Point, Vector, Point, -);
-vector_op!(Sub, sub, Point, Point, Vector, -);
-vector_assign_op!(AddAssign, add_assign, Point, Vector, +=);
-vector_assign_op!(SubAssign, sub_assign, Point, Vector, -=);
+vector_op!(impl Add<Vector3> for Point { fn add -> Point, + {x, y, z} });
+vector_op!(impl Sub<Vector3> for Point { fn sub -> Point, - {x, y, z} });
+vector_op!(impl Sub<Point> for Point { fn sub -> Vector3, - {x, y, z} });
+vector_assign_op!(impl AddAssign<Vector3> for Point { fn add_assign, += {x, y, z} });
+vector_assign_op!(impl SubAssign<Vector3> for Point { fn sub_assign, -= {x, y, z} });
