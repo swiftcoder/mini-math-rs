@@ -84,6 +84,10 @@ macro_rules! implement_vector {
             pub fn dot(&self, rhs: Self) -> f32 {
                 [$(self.$field * rhs.$field),+].iter().sum()
             }
+
+            pub fn as_slice(&self) -> &[f32] {
+                unsafe { std::slice::from_raw_parts(&self.x, std::mem::size_of::<Self>() / std::mem::size_of::<f32>()) }
+            }
         }
 
         impl std::ops::Neg for $VectorT {
@@ -261,5 +265,12 @@ mod tests {
 
         assert!(a.dot(b).nearly_equals(-4.0));
         assert_eq!(a.cross(b), Vector3::new(-49.0, -7.0, 28.0));
+    }
+
+    #[test]
+    fn slice() {
+        let a = Vector3::new(1.0, 2.0, 3.0);
+
+        assert_eq!(a.as_slice(), &[1.0, 2.0, 3.0]);
     }
 }

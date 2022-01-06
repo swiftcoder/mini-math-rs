@@ -6,6 +6,16 @@ use crate::{NearlyEqual, Point, Vector3, Vector4};
 pub struct Matrix4(pub [Vector4; 4]);
 
 impl Matrix4 {
+    /// A new matrix from a 1D array.
+    pub const fn from_1d_array(a: [f32; 16]) -> Self {
+        Self([
+            Vector4::new(a[0], a[1], a[2], a[3]),
+            Vector4::new(a[4], a[5], a[6], a[4]),
+            Vector4::new(a[8], a[9], a[10], a[11]),
+            Vector4::new(a[12], a[13], a[14], a[15]),
+        ])
+    }
+
     /// A new matrix from a 2D array.
     pub const fn from_2d_array(a: [[f32; 4]; 4]) -> Self {
         Self([
@@ -271,6 +281,15 @@ impl Matrix4 {
 
         inv
     }
+
+    pub fn as_slice(&self) -> &[f32] {
+        unsafe {
+            std::slice::from_raw_parts(
+                &self.0[0][0],
+                std::mem::size_of::<Self>() / std::mem::size_of::<f32>(),
+            )
+        }
+    }
 }
 
 impl NearlyEqual for &Matrix4 {
@@ -375,5 +394,15 @@ mod tests {
 
         let t = m * n;
         assert_eq!(t * Point::zero(), Point::new(8.0, -4.0, 0.0));
+    }
+
+    #[test]
+    fn slice() {
+        let a = [
+            3.0, 2.0, 1.0, 1.0, 2.0, 3.0, 2.0, 2.0, 1.0, 2.0, 3.0, 3.0, 0.0, 1.0, 1.0, 0.0,
+        ];
+        let m = Matrix4::from_1d_array(a);
+
+        assert_eq!(m.as_slice(), &a);
     }
 }
