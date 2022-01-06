@@ -3,11 +3,9 @@
 mod matrix;
 mod nearly_equal;
 mod operators;
-mod point;
 mod vector;
 
 pub use matrix::*;
 pub use nearly_equal::*;
 pub use operators::*;
-pub use point::*;
 pub use vector::*;

@@ -1,10 +1,10 @@
 [package]
 name = "mini-math"
-version = "0.1.4"
+version = "0.2.0"
 authors = ["Tristam MacDonald <swiftcoder@gmail.com>"]
 license = "Apache-2.0"
 description = "Lightweight math routines for 3D graphics"
-edition = "2018"
+edition = "2021"
 
 homepage = "https://github.com/swiftcoder/mini-math-rs"
 repository = "https://github.com/swiftcoder/mini-math-rs"
@@ -12,4 +12,3 @@ documentation = "https://docs.rs/mini-math"
 readme = "README.md"
 
 [dependencies]
-zerocopy = "0.2.8"
