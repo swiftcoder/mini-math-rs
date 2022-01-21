@@ -1,6 +1,6 @@
 [package]
 name = "mini-math"
-version = "0.2.1"
+version = "0.2.2"
 authors = ["Tristam MacDonald <swiftcoder@gmail.com>"]
 license = "Apache-2.0"
 description = "Lightweight math routines for 3D graphics"
