@@ -79,6 +79,21 @@ impl Matrix4 {
         ])
     }
 
+    /// An orthographic matrix suitable for rendering user interfaces.
+    pub fn orthographic(left: f32, right: f32, bottom: f32, top: f32, near: f32, far: f32) -> Self {
+        Self([
+            Vector4::new(2.0 / (right - left), 0.0, 0.0, 0.0),
+            Vector4::new(0.0, 2.0 / (top - bottom), 0.0, 0.0),
+            Vector4::new(0.0, 0.0, -2.0 / (far - near), -1.0),
+            Vector4::new(
+                -(right + left) / (right - left),
+                -(top + bottom) / (top - bottom),
+                -(far + near) / (far - near),
+                1.0,
+            ),
+        ])
+    }
+
     /// A matrix that translates by the given vector.
     pub fn translation(v: Vector3) -> Self {
         Self([
