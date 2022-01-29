@@ -85,6 +85,12 @@ macro_rules! implement_vector {
                 [$(self.$field * rhs.$field),+].iter().sum()
             }
 
+            /// Linear interpolation between this vector and another
+            pub fn lerp(&self, rhs: Self, factor: f32) -> Self {
+                let t = factor.min(1.0).max(0.0);
+                Self::new($(self.$field * (1.0 - t) + rhs.$field * t),+)
+            }
+
             pub fn as_slice(&self) -> &[f32] {
                 unsafe { std::slice::from_raw_parts(&self.x, std::mem::size_of::<Self>() / std::mem::size_of::<f32>()) }
             }
@@ -265,6 +271,14 @@ mod tests {
 
         assert!(a.dot(b).nearly_equals(-4.0));
         assert_eq!(a.cross(b), Vector3::new(-49.0, -7.0, 28.0));
+    }
+
+    #[test]
+    fn lerp() {
+        let a = Vector3::new(1.0, 0.0, 0.0);
+        let b = Vector3::new(0.0, 1.0, 0.0);
+
+        assert_eq!(a.lerp(b, 0.75), Vector3::new(0.25, 0.75, 0.0));
     }
 
     #[test]
