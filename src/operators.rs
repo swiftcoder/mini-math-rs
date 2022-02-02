@@ -1,4 +1,4 @@
-use crate::{Matrix4, Point, Vector3, Vector4};
+use crate::{Matrix4, Point, Vector2, Vector3, Vector4};
 
 impl std::ops::Mul<&Matrix4> for Matrix4 {
     type Output = Self;
@@ -127,10 +127,20 @@ macro_rules! vector_assign_op {
     };
 }
 
+vector_op!(impl Add<Vector2> for Vector2 { fn add -> Vector2, + {x, y} });
+vector_op!(impl Sub<Vector2> for Vector2 { fn sub -> Vector2, - {x, y} });
+vector_assign_op!(impl AddAssign<Vector2> for Vector2 { fn add_assign, += {x, y} });
+vector_assign_op!(impl SubAssign<Vector2> for Vector2 { fn sub_assign, -= {x, y} });
+
 vector_op!(impl Add<Vector3> for Vector3 { fn add -> Vector3, + {x, y, z} });
 vector_op!(impl Sub<Vector3> for Vector3 { fn sub -> Vector3, - {x, y, z} });
 vector_assign_op!(impl AddAssign<Vector3> for Vector3 { fn add_assign, += {x, y, z} });
 vector_assign_op!(impl SubAssign<Vector3> for Vector3 { fn sub_assign, -= {x, y, z} });
+
+vector_op!(impl Add<Vector4> for Vector4 { fn add -> Vector4, + {x, y, z, w} });
+vector_op!(impl Sub<Vector4> for Vector4 { fn sub -> Vector4, - {x, y, z, w} });
+vector_assign_op!(impl AddAssign<Vector4> for Vector4 { fn add_assign, += {x, y, z, w} });
+vector_assign_op!(impl SubAssign<Vector4> for Vector4 { fn sub_assign, -= {x, y, z, w} });
 
 vector_op!(impl Add<Vector3> for Point { fn add -> Point, + {x, y, z} });
 vector_op!(impl Sub<Vector3> for Point { fn sub -> Point, - {x, y, z} });
