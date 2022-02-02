@@ -160,6 +160,15 @@ implement_vector!(Vector3 { x, y, z });
 implement_vector!(Point { x, y, z });
 implement_vector!(Vector4 { x, y, z, w });
 
+impl Vector2 {
+    /// Compute a cross product between this vector and another.
+    /// This treats both inputs as 3D vectors with a z-component of zero,
+    /// performs the normal 3D cross product, and returns only the resulting z-component.
+    pub fn cross(&self, rhs: Self) -> f32 {
+        self.x * rhs.y - self.y * rhs.x
+    }
+}
+
 impl Vector3 {
     /// Compute the cross product between this vector and another.
     pub fn cross(&self, rhs: Self) -> Self {
