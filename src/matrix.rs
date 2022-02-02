@@ -134,6 +134,65 @@ impl Matrix4 {
         ])
     }
 
+    /// A matrix that rotates around an arbitrary axis.
+    pub fn rotation_axis_angle(axis: Vector3, angle_radians: f32) -> Self {
+        let sin = angle_radians.sin();
+        let cos = angle_radians.cos();
+        let k = 1.0 - cos;
+
+        Self([
+            Vector4::new(
+                axis.x * axis.x * k + cos,
+                axis.y * axis.x * k - sin * axis.z,
+                axis.z * axis.x * k + sin * axis.y,
+                0.0,
+            ),
+            Vector4::new(
+                axis.x * axis.y * k + sin * axis.z,
+                axis.y * axis.y * k + cos,
+                axis.z * axis.y * k - sin * axis.x,
+                0.0,
+            ),
+            Vector4::new(
+                axis.x * axis.z * k - sin * axis.y,
+                axis.y * axis.z * k + sin * axis.x,
+                axis.z * axis.z * k + cos,
+                0.0,
+            ),
+            Vector4::new(0.0, 0.0, 0.0, 1.0),
+        ])
+    }
+
+    /// A matrix that rotates from a given vector to another.
+    pub fn rotation_from_vector_to_vector(start: Vector3, end: Vector3) -> Self {
+        let axis = -start.cross(end);
+
+        let cos = start.dot(end);
+        let k = 1.0 / (1.0 + cos);
+
+        Self([
+            Vector4::new(
+                axis.x * axis.x * k + cos,
+                axis.y * axis.x * k - axis.z,
+                axis.z * axis.x * k + axis.y,
+                0.0,
+            ),
+            Vector4::new(
+                axis.x * axis.y * k + axis.z,
+                axis.y * axis.y * k + cos,
+                axis.z * axis.y * k - axis.x,
+                0.0,
+            ),
+            Vector4::new(
+                axis.x * axis.z * k - axis.y,
+                axis.y * axis.z * k + axis.x,
+                axis.z * axis.z * k + cos,
+                0.0,
+            ),
+            Vector4::new(0.0, 0.0, 0.0, 1.0),
+        ])
+    }
+
     /// A matrix that scales uniformly in all dimensions.
     pub fn uniform_scale(scale: f32) -> Self {
         Self([
@@ -409,6 +468,33 @@ mod tests {
 
         let t = m * n;
         assert_eq!(t * Point::zero(), Point::new(8.0, -4.0, 0.0));
+    }
+
+    #[test]
+    fn rotate_axis_angle() {
+        let m =
+            Matrix4::rotation_axis_angle(Vector3::new(0.0, 1.0, 0.0), std::f32::consts::FRAC_PI_2);
+        assert_eq!(m * Point::zero(), Point::zero());
+        assert_nearly_eq!(m * Point::new(1.0, 0.0, 0.0), &Point::new(0.0, 0.0, 1.0));
+
+        let m =
+            Matrix4::rotation_axis_angle(Vector3::new(1.0, 0.0, 0.0), std::f32::consts::FRAC_PI_2);
+        assert_nearly_eq!(m * Point::new(0.0, 0.0, 1.0), &Point::new(0.0, 1.0, 0.0));
+
+        let m =
+            Matrix4::rotation_axis_angle(Vector3::new(0.0, 0.0, 1.0), std::f32::consts::FRAC_PI_2);
+        assert_nearly_eq!(m * Point::new(1.0, 0.0, 0.0), &Point::new(0.0, -1.0, 0.0));
+    }
+
+    #[test]
+    fn rotation_from_vector_to_vector() {
+        let m = Matrix4::rotation_from_vector_to_vector(
+            Vector3::new(1.0, 0.0, 0.0),
+            Vector3::new(0.0, 0.0, 1.0),
+        );
+        assert_eq!(m * Point::zero(), Point::zero());
+        assert_nearly_eq!(m * Point::new(1.0, 0.0, 0.0), &Point::new(0.0, 0.0, 1.0));
+        assert_nearly_eq!(m * Point::new(0.0, 0.0, 1.0), &Point::new(-1.0, 0.0, 0.0));
     }
 
     #[test]
