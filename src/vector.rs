@@ -91,6 +91,27 @@ macro_rules! implement_vector {
                 Self::new($(self.$field * (1.0 - t) + rhs.$field * t),+)
             }
 
+            /// The length of this vector squared. Note that this avoids an expensive square root.
+            pub fn magnitude_squared(&self) -> f32 {
+                self.dot(*self)
+            }
+
+            /// The length of this vector. Note that this involves an expensive square root.
+            pub fn magnitude(&self) -> f32 {
+                self.magnitude_squared().sqrt()
+            }
+
+            /// Normalize this vector to unit length. Note that this involves an expensive square root.
+            pub fn normalized(&self) -> Self {
+                let d = self.magnitude();
+                if d > 0.0 {
+                    let d = 1.0 / d;
+                    *self * d
+                } else {
+                    *self
+                }
+            }
+
             pub fn as_slice(&self) -> &[f32] {
                 unsafe { std::slice::from_raw_parts(&self.x, std::mem::size_of::<Self>() / std::mem::size_of::<f32>()) }
             }
@@ -176,27 +197,6 @@ impl Vector3 {
             x: self.y * rhs.z - self.z * rhs.y,
             y: self.z * rhs.x - self.x * rhs.z,
             z: self.x * rhs.y - self.y * rhs.x,
-        }
-    }
-
-    /// The length of this vector squared. Note that this avoids an expensive square root.
-    pub fn magnitude_squared(&self) -> f32 {
-        self.dot(*self)
-    }
-
-    /// The length of this vector. Note that this involves an expensive square root.
-    pub fn magnitude(&self) -> f32 {
-        self.magnitude_squared().sqrt()
-    }
-
-    /// Normalize this vector to unit length. Note that this involves an expensive square root.
-    pub fn normalized(&self) -> Self {
-        let d = self.magnitude();
-        if d > 0.0 {
-            let d = 1.0 / d;
-            *self * d
-        } else {
-            *self
         }
     }
 }
