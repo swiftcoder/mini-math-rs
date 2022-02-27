@@ -91,6 +91,16 @@ macro_rules! implement_vector {
                 Self::new($(self.$field * (1.0 - t) + rhs.$field * t),+)
             }
 
+            /// Compute the element-wise minimum of this vector and another
+            pub fn min(&self, rhs: Self) -> Self {
+                Self::new($(self.$field.min(rhs.$field)),+)
+            }
+
+            /// Compute the element-wise maximum of this vector and another
+            pub fn max(&self, rhs: Self) -> Self {
+                Self::new($(self.$field.max(rhs.$field)),+)
+            }
+
             /// The length of this vector squared. Note that this avoids an expensive square root.
             pub fn magnitude_squared(&self) -> f32 {
                 self.dot(*self)
